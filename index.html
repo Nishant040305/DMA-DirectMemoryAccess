@@ -551,17 +551,17 @@
             </ol>
             
             <div class="code-block">
-; Example DMA initialization (Assembly)
-MOV AL, 04H        ; Disable channel 0
-OUT 08H, AL        ; Command register
-
-MOV AL, 45H        ; Single transfer, read mode
-OUT 0BH, AL        ; Mode register
-
-MOV AX, 1000H      ; Source address
-OUT 00H, AL        ; Low byte
-MOV AL, AH
-OUT 00H, AL        ; High byte
+; Example DMA initialization (Assembly)<br>
+MOV AL, 04H        ; Disable channel 0<br>
+OUT 08H, AL        ; Command register<br>
+<br>
+MOV AL, 45H        ; Single transfer, read mode<br>
+OUT 0BH, AL        ; Mode register<br>
+<br>
+MOV AX, 1000H      ; Source address<br>
+OUT 00H, AL        ; Low byte<br>
+MOV AL, AH<br>
+OUT 00H, AL        ; High byte<br>
             </div>
         </div>
 
