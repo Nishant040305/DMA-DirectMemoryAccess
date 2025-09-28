@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DMA in 8086 Microprocessor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .presentation-container {
+            width: 90%;
+            max-width: 1000px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .slide {
+            display: none !important;
+            padding: 40px;
+            min-height: 600px;
+            position: relative;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .slide.active {
+            display: block !important;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-align: center;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 15px;
+        }
+
+        .slide h2 {
+            color: #34495e;
+            font-size: 2em;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .slide h3 {
+            color: #2980b9;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            margin-top: 25px;
+        }
+
+        .slide p, .slide li {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            color: #34495e;
+        }
+
+        .slide ul {
+            margin-left: 30px;
+            margin-bottom: 20px;
+        }
+
+        .slide li {
+            margin-bottom: 10px;
+            padding-left: 10px;
+        }
+
+        .highlight {
+            background: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 5px solid #3498db;
+        }
+
+        .code-block {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+
+        .diagram {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            font-family: monospace;
+        }
+
+        .controls {
+            background: #34495e;
+            padding: 15px;
+            text-align: center;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .slide-counter {
+            color: white;
+            font-size: 1.1em;
+        }
+
+        .title-slide {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .title-slide h1 {
+            font-size: 3em;
+            border: none;
+            color: white;
+        }
+
+        .subtitle {
+            font-size: 1.3em;
+            margin-top: 20px;
+            opacity: 0.9;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 20px 0;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 1em;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .comparison-table th {
+            background: #3498db;
+            color: white;
+            font-weight: bold;
+        }
+
+        .comparison-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .flowchart {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .flowchart-box {
+            background: #3498db;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 200px;
+        }
+
+        .flowchart-arrow {
+            font-size: 2em;
+            color: #3498db;
+        }
+    </style>
+</head>
+<body>
+    <div class="presentation-container">
+        <!-- Slide 1: Title -->
+        <div class="slide active title-slide">
+            <h1>Direct Memory Access (DMA)</h1>
+            <h2>in 8086 Microprocessor</h2>
+            <p class="subtitle">Understanding High-Speed Data Transfer Mechanism</p>
+            <p style="margin-top: 40px; font-size: 1.1em;">A Comprehensive Overview</p>
+        </div>
+
+        <!-- Slide 2: What is DMA? -->
+        <div class="slide">
+            <h2>What is Direct Memory Access (DMA)?</h2>
+            
+            <div class="highlight">
+                <p><strong>DMA is a method of transferring data between memory and I/O devices without direct CPU intervention.</strong></p>
+            </div>
+            
+            <h3>Key Characteristics:</h3>
+            <ul>
+                <li><strong>High-speed data transfer</strong> - Much faster than programmed I/O</li>
+                <li><strong>CPU independence</strong> - Processor can perform other tasks</li>
+                <li><strong>Hardware-controlled</strong> - Managed by DMA controller</li>
+                <li><strong>Burst or cycle stealing modes</strong> - Flexible operation</li>
+            </ul>
+            
+            <div class="diagram">
+                <p><strong>Basic DMA Concept:</strong></p>
+                <p>I/O Device ←→ DMA Controller ←→ Memory</p>
+                <p>(CPU temporarily suspended during transfer)</p>
+            </div>
+        </div>
+
+        <!-- Slide 3: Need for DMA -->
+        <div class="slide">
+            <h2>Why Do We Need DMA?</h2>
+            
+            <div class="two-column">
+                <div>
+                    <h3>Problems with Programmed I/O:</h3>
+                    <ul>
+                        <li>CPU constantly monitors I/O operations</li>
+                        <li>Waste of CPU time and resources</li>
+                        <li>Slower data transfer rates</li>
+                        <li>CPU cannot perform other tasks</li>
+                        <li>Inefficient for bulk data transfer</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>DMA Advantages:</h3>
+                    <ul>
+                        <li>Frees CPU for other processing tasks</li>
+                        <li>Higher data transfer rates</li>
+                        <li>Reduced CPU overhead</li>
+                        <li>Efficient bulk data movement</li>
+                        <li>Better system performance</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="highlight">
+                <p><strong>Example:</strong> Transferring 1MB of data from disk to memory would require thousands of CPU instructions with programmed I/O, but only setup and completion handling with DMA.</p>
+            </div>
+        </div>
+
+        <!-- Slide 4: DMA Controller 8257 -->
+        <div class="slide">
+            <h2>Intel 8257 DMA Controller</h2>
+            
+            <div class="highlight">
+                <p>The 8257 is a 4-channel DMA controller commonly used with 8086 systems.</p>
+            </div>
+            
+            <h3>Key Features:</h3>
+            <ul>
+                <li><strong>4 independent channels</strong> - Can handle multiple devices</li>
+                <li><strong>14-bit address capability</strong> - Can address up to 16KB per channel</li>
+                <li><strong>Auto-increment/decrement</strong> - Automatic address modification</li>
+                <li><strong>Multiple transfer modes</strong> - Flexible operation options</li>
+                <li><strong>Priority resolution</strong> - Channel 0 has highest priority</li>
+            </ul>
+            
+            <div class="diagram">
+                <p><strong>8257 Pin Configuration:</strong></p>
+                <p>40-pin DIP package</p>
+                <p>Address Lines (A0-A7), Data Lines (D0-D7)</p>
+                <p>Control Signals: IOR, IOW, MEMR, MEMW</p>
+                <p>DMA Request/Acknowledge: DRQ0-3, DACK0-3</p>
+            </div>
+        </div>
+
+        <!-- Slide 5: DMA Transfer Modes -->
+        <div class="slide">
+            <h2>DMA Transfer Modes</h2>
+            
+            <table class="comparison-table">
+                <tr>
+                    <th>Mode</th>
+                    <th>Description</th>
+                    <th>CPU Usage</th>
+                    <th>Transfer Speed</th>
+                </tr>
+                <tr>
+                    <td><strong>Burst Mode</strong></td>
+                    <td>DMA controller takes control of bus until entire block is transferred</td>
+                    <td>CPU halted during transfer</td>
+                    <td>Fastest</td>
+                </tr>
+                <tr>
+                    <td><strong>Cycle Stealing</strong></td>
+                    <td>DMA controller steals bus cycles when CPU doesn't need them</td>
+                    <td>Minimal CPU interruption</td>
+                    <td>Moderate</td>
+                </tr>
+                <tr>
+                    <td><strong>Transparent Mode</strong></td>
+                    <td>DMA transfer only when CPU is not using the bus</td>
+                    <td>No CPU interference</td>
+                    <td>Slowest</td>
+                </tr>
+            </table>
+            
+            <div class="highlight">
+                <p><strong>Most Common:</strong> Cycle stealing mode provides the best balance between transfer speed and CPU availability.</p>
+            </div>
+        </div>
+
+        <!-- Slide 6: DMA Operation Process -->
+        <div class="slide">
+            <h2>DMA Operation Process</h2>
+            
+            <div class="flowchart">
+                <div class="flowchart-box">1. CPU Programs DMA Controller</div>
+                <div class="flowchart-arrow">↓</div>
+                <div class="flowchart-box">2. I/O Device Sends DRQ Signal</div>
+                <div class="flowchart-arrow">↓</div>
+                <div class="flowchart-box">3. DMA Controller Sends HRQ to CPU</div>
+                <div class="flowchart-arrow">↓</div>
+                <div class="flowchart-box">4. CPU Responds with HLDA</div>
+                <div class="flowchart-arrow">↓</div>
+                <div class="flowchart-box">5. DMA Controller Takes Bus Control</div>
+                <div class="flowchart-arrow">↓</div>
+                <div class="flowchart-box">6. Data Transfer Occurs</div>
+                <div class="flowchart-arrow">↓</div>
+                <div class="flowchart-box">7. DMA Controller Releases Bus</div>
+            </div>
+        </div>
+
+        <!-- Slide 7: DMA Controller Programming -->
+        <div class="slide">
+            <h2>Programming the DMA Controller</h2>
+            
+            <h3>Steps to Initialize DMA:</h3>
+            <ol>
+                <li><strong>Disable the channel</strong> - Clear enable bit</li>
+                <li><strong>Set transfer mode</strong> - Read/Write/Verify</li>
+                <li><strong>Load source address</strong> - Starting memory location</li>
+                <li><strong>Load destination address</strong> - Target location</li>
+                <li><strong>Set byte count</strong> - Number of bytes to transfer</li>
+                <li><strong>Enable the channel</strong> - Start DMA operation</li>
+            </ol>
+            
+            <div class="code-block">
+; Example DMA initialization (Assembly)
+MOV AL, 04H        ; Disable channel 0
+OUT 08H, AL        ; Command register
+
+MOV AL, 45H        ; Single transfer, read mode
+OUT 0BH, AL        ; Mode register
+
+MOV AX, 1000H      ; Source address
+OUT 00H, AL        ; Low byte
+MOV AL, AH
+OUT 00H, AL        ; High byte
+            </div>
+        </div>
+
+        <!-- Slide 8: DMA vs CPU Transfer -->
+        <div class="slide">
+            <h2>DMA vs CPU-Controlled Transfer</h2>
+            
+            <table class="comparison-table">
+                <tr>
+                    <th>Aspect</th>
+                    <th>DMA Transfer</th>
+                    <th>CPU Transfer</th>
+                </tr>
+                <tr>
+                    <td><strong>Speed</strong></td>
+                    <td>Very High (up to bus speed)</td>
+                    <td>Limited by instruction execution</td>
+                </tr>
+                <tr>
+                    <td><strong>CPU Utilization</strong></td>
+                    <td>CPU free for other tasks</td>
+                    <td>CPU fully occupied</td>
+                </tr>
+                <tr>
+                    <td><strong>Hardware Cost</strong></td>
+                    <td>Higher (DMA controller needed)</td>
+                    <td>Lower (software-based)</td>
+                </tr>
+                <tr>
+                    <td><strong>Complexity</strong></td>
+                    <td>More complex setup</td>
+                    <td>Simpler programming</td>
+                </tr>
+                <tr>
+                    <td><strong>Best Use</strong></td>
+                    <td>Bulk data transfer</td>
+                    <td>Small data transfers</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Slide 9: DMA Applications -->
+        <div class="slide">
+            <h2>DMA Applications in 8086 Systems</h2>
+            
+            <div class="two-column">
+                <div>
+                    <h3>Common Applications:</h3>
+                    <ul>
+                        <li><strong>Disk I/O Operations</strong>
+                            <p>Reading/writing large files</p>
+                        </li>
+                        <li><strong>Network Data Transfer</strong>
+                            <p>High-speed network communications</p>
+                        </li>
+                        <li><strong>Memory-to-Memory Transfer</strong>
+                            <p>Block copying operations</p>
+                        </li>
+                        <li><strong>Audio/Video Processing</strong>
+                            <p>Real-time multimedia data</p>
+                        </li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>Device Examples:</h3>
+                    <ul>
+                        <li><strong>Floppy Disk Controllers</strong></li>
+                        <li><strong>Hard Disk Controllers</strong></li>
+                        <li><strong>Network Interface Cards</strong></li>
+                        <li><strong>Sound Cards</strong></li>
+                        <li><strong>Graphics Cards</strong></li>
+                        <li><strong>Tape Drives</strong></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="highlight">
+                <p><strong>Real-world Example:</strong> A typical floppy disk transfer of 1.44MB would take several seconds with CPU control, but only milliseconds with DMA.</p>
+            </div>
+        </div>
+
+        <!-- Slide 10: Advantages and Disadvantages -->
+        <div class="slide">
+            <h2>DMA: Advantages vs Disadvantages</h2>
+            
+            <div class="two-column">
+                <div>
+                    <h3>✅ Advantages:</h3>
+                    <ul>
+                        <li>High-speed data transfer</li>
+                        <li>Reduced CPU overhead</li>
+                        <li>Better system performance</li>
+                        <li>Multitasking capability</li>
+                        <li>Efficient for bulk transfers</li>
+                        <li>Real-time processing support</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3>❌ Disadvantages:</h3>
+                    <ul>
+                        <li>Additional hardware cost</li>
+                        <li>Complex system design</li>
+                        <li>Bus arbitration overhead</li>
+                        <li>Limited address space (8257)</li>
+                        <li>Potential bus conflicts</li>
+                        <li>Debugging complexity</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="highlight">
+                <p><strong>Bottom Line:</strong> DMA is essential for high-performance 8086 systems despite its complexity and cost.</p>
+            </div>
+        </div>
+
+        <!-- Slide 11: Conclusion -->
+        <div class="slide">
+            <h2>Conclusion</h2>
+            
+            <div class="highlight">
+                <p><strong>DMA is a crucial technology that revolutionized data transfer in microprocessor systems.</strong></p>
+            </div>
+            
+            <h3>Key Takeaways:</h3>
+            <ul>
+                <li>DMA enables high-speed data transfer without CPU intervention</li>
+                <li>Intel 8257 provides 4-channel DMA capability for 8086 systems</li>
+                <li>Multiple transfer modes offer flexibility for different applications</li>
+                <li>DMA is essential for modern computing applications requiring high throughput</li>
+                <li>The benefits far outweigh the added complexity for most applications</li>
+            </ul>
+            
+            <div class="diagram">
+                <p><strong>DMA Impact on System Performance:</strong></p>
+                <p>Traditional I/O: CPU Utilization = 90-100%</p>
+                <p>DMA I/O: CPU Utilization = 10-20%</p>
+                <p><strong>Result: 5-10x improvement in overall system efficiency!</strong></p>
+            </div>
+        </div>
+
+        <!-- Slide 12: Thank You -->
+        <div class="slide title-slide">
+            <h1>Thank You</h1>
+            <h2>Questions & Discussion</h2>
+            <p class="subtitle">DMA in 8086 Microprocessor</p>
+            <p style="margin-top: 40px; font-size: 1.1em;">Understanding Direct Memory Access Technology</p>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button class="btn" id="prevBtn" onclick="changeSlide(-1)">← Previous</button>
+            <span class="slide-counter">
+                Slide <span id="currentSlide">1</span> of <span id="totalSlides">12</span>
+            </span>
+            <button class="btn" id="nextBtn" onclick="changeSlide(1)">Next →</button>
+        </div>
+    </div>
+
+    <script>
+        let currentSlideIndex = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        
+        document.getElementById('totalSlides').textContent = totalSlides;
+
+        function showSlide(index) {
+            // Hide all slides
+            slides.forEach(slide => slide.classList.remove('active'));
+            
+            // Show current slide
+            slides[index].classList.add('active');
+            
+            // Update slide counter
+            document.getElementById('currentSlide').textContent = index + 1;
+            
+            // Update button states
+            document.getElementById('prevBtn').disabled = index === 0;
+            document.getElementById('nextBtn').disabled = index === totalSlides - 1;
+        }
+
+        function changeSlide(direction) {
+            const newIndex = currentSlideIndex + direction;
+            
+            if (newIndex >= 0 && newIndex < totalSlides) {
+                currentSlideIndex = newIndex;
+                showSlide(currentSlideIndex);
+            }
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+                changeSlide(-1);
+            } else if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+                changeSlide(1);
+            }
+        });
+
+        // Initialize
+        showSlide(0);
+    </script>
+</body>
+</html>
